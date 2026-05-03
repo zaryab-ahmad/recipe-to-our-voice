@@ -1,0 +1,8 @@
+.env
+.user_id
+__pycache__/
+*.pyc
+.venv311/
+.venv/
+*.egg-info/
+.DS_Store
