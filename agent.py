@@ -91,88 +91,71 @@ def clean_response(text: str) -> str:
 
 
 # ──────────────────────────────────────────
-# Auto Analytics Logger
+# Auto Analytics Logger (UPDATED EVERY-QUERY INTERCEPTOR)
 # ──────────────────────────────────────────
 def auto_log_analytics(user_message: str):
-    """Silently detect and log safety incidents from user messages."""
-
-    safety_keywords = [
-        "harassment", "pictures", "photo", "tasveer", "peeche", "stalking",
-        "maar", "violence", "hurt", "help", "danger", "scared", "dar",
-        "college", "university", "school", "boys", "larke", "husband",
-        "abuse", "threat", "zulm", "pareshaan", "problem", "takleef",
-        "rape", "assault", "chhed", "chhairna", "follow", "peecha",
-        "fire", "jail", "police", "FIR", "case", "court"
-    ]
-
-    user_lower = user_message.lower()
-
-    if not any(kw in user_lower for kw in safety_keywords):
-        return
-
-    # ── Detect Category ──
-    if any(w in user_lower for w in ["picture", "photo", "tasveer", "camera", "video"]):
-        category = "Photography Harassment"
-    elif any(w in user_lower for w in ["rape", "assault", "jabardasti"]):
-        category = "Sexual Assault"
-    elif any(w in user_lower for w in ["maar", "hit", "beat", "violence", "mara"]):
-        category = "Physical Violence"
-    elif any(w in user_lower for w in ["stalk", "follow", "peecha", "peeche"]):
-        category = "Stalking"
-    elif any(w in user_lower for w in ["college", "university", "school", "campus"]):
-        category = "Educational Institution Harassment"
-    elif any(w in user_lower for w in ["husband", "shauhar", "ghar", "sasural"]):
-        category = "Domestic Abuse"
-    elif any(w in user_lower for w in ["street", "road", "bazaar", "market"]):
-        category = "Street Harassment"
-    elif any(w in user_lower for w in ["office", "boss", "kaam", "job", "work"]):
-        category = "Workplace Harassment"
-    else:
-        category = "General Harassment"
-
-    # ── Detect Location ──
-    location_map = {
-        "islamia college peshawar": "Islamia College Peshawar",
-        "peshawar":                 "Peshawar",
-        "hayatabad":                "Hayatabad Peshawar",
-        "saddar peshawar":          "Saddar Peshawar",
-        "mardan":                   "Mardan",
-        "swat":                     "Swat",
-        "abbottabad":               "Abbottabad",
-        "karachi":                  "Karachi",
-        "defence":                  "DHA Karachi",
-        "gulshan":                  "Gulshan Karachi",
-        "lahore":                   "Lahore",
-        "gulberg":                  "Gulberg Lahore",
-        "islamabad":                "Islamabad",
-        "f-10":                     "F-10 Islamabad",
-        "g-9":                      "G-9 Islamabad",
-        "rawalpindi":               "Rawalpindi",
-        "quetta":                   "Quetta",
-        "multan":                   "Multan",
-        "faisalabad":               "Faisalabad",
-        "hyderabad":                "Hyderabad",
-        "sialkot":                  "Sialkot",
-    }
-
-    detected_zone = "Unknown"
-    for key, value in location_map.items():
-        if key in user_lower:
-            detected_zone = value
-            break
-
-    # ── Detect Recurrence ──
-    if any(w in user_lower for w in ["daily", "har roz", "everyday", "roz", "baar baar", "again", "keeps", "always", "hamesha"]):
-        recurrence = "frequent"
-    elif any(w in user_lower for w in ["kal", "yesterday", "last week", "pehle", "sometimes", "kabhi kabhi"]):
-        recurrence = "occasional"
-    else:
-        recurrence = "first time"
-
-    # ── Silently Log ──
+    """Silently categorizes and logs EVERY user query to the dashboard using AI."""
+    
     try:
-        log_dashboard_analytics(category, detected_zone, recurrence)
-        print(f"📊 Auto-logged: {category} | {detected_zone} | {recurrence}")
+        # 1. Ask Groq to categorize the problem in just 2-3 words (Ultra-Fast)
+        prompt = f"""
+        Read this message from a Pakistani woman: "{user_message}"
+        Categorize her core problem or topic in 1 to 3 words. 
+        Examples: "Financial Stress", "In-Law Dispute", "Street Harassment", "Career Advice", "Mental Exhaustion", "Domestic Violence", "General Chat".
+        ONLY output the category words, nothing else. No punctuation.
+        """
+        
+        category_response = groq_client.chat.completions.create(
+            model="llama-3.1-8b-instant",
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=10,
+            temperature=0.3 # Keep it strict and consistent
+        )
+        
+        # Clean the output
+        problem_category = category_response.choices[0].message.content.strip().replace('"', '')
+
+        # 2. Detect Location (Kept fast text-matching to save AI tokens)
+        user_lower = user_message.lower()
+        location_map = {
+            "islamia college peshawar": "Islamia College Peshawar",
+            "peshawar":                 "Peshawar",
+            "hayatabad":                "Hayatabad Peshawar",
+            "saddar peshawar":          "Saddar Peshawar",
+            "mardan":                   "Mardan",
+            "swat":                     "Swat",
+            "abbottabad":               "Abbottabad",
+            "karachi":                  "Karachi",
+            "defence":                  "DHA Karachi",
+            "gulshan":                  "Gulshan Karachi",
+            "lahore":                   "Lahore",
+            "gulberg":                  "Gulberg Lahore",
+            "islamabad":                "Islamabad",
+            "f-10":                     "F-10 Islamabad",
+            "g-9":                      "G-9 Islamabad",
+            "rawalpindi":               "Rawalpindi",
+            "quetta":                   "Quetta",
+            "multan":                   "Multan",
+            "faisalabad":               "Faisalabad",
+            "hyderabad":                "Hyderabad",
+            "sialkot":                  "Sialkot",
+        }
+
+        detected_zone = "Unknown"
+        for key, value in location_map.items():
+            if key in user_lower:
+                detected_zone = value
+                break
+
+        # 3. Save it directly to the Supabase Dashboard Table using your existing tool
+        log_dashboard_analytics(
+            category=problem_category,
+            city_zone=detected_zone,
+            recurrence="tracked_query" # Flags that this is an everyday interaction
+        )
+        
+        print(f"📊 Dashboard Updated: Logged '{problem_category}' in {detected_zone}")
+
     except Exception as e:
         print(f"Analytics auto-log error: {e}")
 
@@ -275,7 +258,7 @@ def run_agent(
 
     print(f"🌐 Language: {language} | Model: {model_name}")
 
-    # ── Auto log analytics silently FIRST ──
+    # ── Auto log analytics silently FIRST (Now logs EVERYTHING) ──
     auto_log_analytics(user_message)
 
     # Build system prompt with memory
