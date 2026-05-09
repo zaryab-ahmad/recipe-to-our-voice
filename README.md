@@ -1,4 +1,4 @@
-  
+   
 # 🍽️ The Recipe to Our Voice (Zaika Recipes)
 
 > **A stealth-mode AI companion for women's safety that hides in plain sight as a recipe app to bypass device confiscation.**
