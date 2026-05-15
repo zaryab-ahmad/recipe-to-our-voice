@@ -2,7 +2,7 @@
 # 🍽️ The Recipe to Our Voice (Zaika Recipes)
 
 > **A stealth-mode AI companion for women's safety that hides in plain sight as a recipe app to bypass device confiscation.**
-
+      
 "The Recipe to Our Voice" is an autonomous AI agent disguised as a daily Pakistani recipe application. When unlocked via a secret phrase, it transforms into a localized, empathetic AI companion ("Aapa") capable of detecting emotional distress, searching live local laws, logging cryptographically-sealed evidence, and triggering real-world SOS alerts—all without leaving a trace.
 
 Built for the **Hackathon 2026** to combat domestic violence and street harassment through accessible, frugal, and invisible technology.
